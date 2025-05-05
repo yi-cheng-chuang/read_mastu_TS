@@ -180,8 +180,8 @@ def main():
 #    ts_start = 0.32   # Start TS time [s]
 #    ts_end = 0.34  
     #Pulse 2#
-    ts_start = 0.82   # Start TS time [s]
-    ts_end = 0.84     # End TS time [s]
+    ts_start = 0.799  # Start TS time [s]
+    ts_end = 0.83     # End TS time [s]
 #    #Pulse 3#
 #    ts_start = 0.4       # Start TS time [s] for the pulse
 #    ts_end = 0.404       # End TS time [s] for the pulse
@@ -225,9 +225,11 @@ def main():
     # Retrieve TS time range data (for Tₑ and nₑ channels) for this pulse range
     ts_times_2, radius_data_2, te_data_2, ne_data_2 = func_get_ts_times_rads_range(shot, ts_start, ts_end, t1, t2)
     
+    # from IPython import embed; embed()
+    
     # Flatten 2D arrays for binning and ordering (overall TS data)
     radius_data_3 = np.ravel(radius_data_2)
-    te_data_3 = np.ravel(te_data_2)
+    te_data_3 = np.ravel(radius_data_3)
     ne_data_3 = np.ravel(ne_data_2)
     r_order = np.argsort(radius_data_3)
     

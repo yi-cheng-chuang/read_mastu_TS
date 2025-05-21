@@ -132,22 +132,8 @@ def func_get_z(shot, ts_start, ts_end, t1, t2):
     tz_times = t_z[arg_3:arg_4]
     z_data = d_z[arg_3:arg_4, :]
     
-    
-    
-    # Retrieve EFIT data for plasma radius
-    trace_name_efit = '/EPM/OUTPUT/SEPARATRIXGEOMETRY/RMIDPLANEOUT'
-    t_efr, efr_dat, error_code_efr = get_data_trace(trace_name_efit, shot, t1, t2)
-    if error_code_efr == 0:
-        valid_idx = func_nans_removed(efr_dat)
-        t_efr = t_efr[valid_idx]
-        efr_dat = efr_dat[valid_idx]
-    else:
-        print("Error retrieving EFIT data.")
-    
-    # Interpolate plasma radius at TS times (from the full range) using EFIT data.
-    ts_plasma_r = np.interp(ts_times, t_efr, efr_dat)
-    
-    
+    print('this is from get_z')
+    print(z_data)
 
     return ts_times, radius_data, tz_times, z_data
 
@@ -157,52 +143,86 @@ def func_nans_removed(test_array):
 def from_epm(shot, ts_start, ts_end, t1, t2, ts_times):
     
     
+    print('the ts_times is:')
+    print(ts_times)
+    
+    
     # Retrieve EFIT data for plasma radius
     trace_name_efit = '/EPM/OUTPUT/SEPARATRIXGEOMETRY/RMIDPLANEOUT'
     t_efr, efr_dat, error_code_efr = get_data_trace(trace_name_efit, shot, t1, t2)
     if error_code_efr == 0:
         valid_idx = func_nans_removed(efr_dat)
+        
+        # print('this is from sepr')
+        # print(valid_idx)
+        # print(t_efr)
+        # print(efr_dat)
+        
+        
         t_efr = t_efr[valid_idx]
         efr_dat = efr_dat[valid_idx]
+        
+        
+        
+        
     else:
         print("Error retrieving EFIT data.")
     
     # Interpolate plasma radius at TS times (from the full range) using EFIT data.
     ts_plasma_r = np.interp(ts_times, t_efr, efr_dat)
+    print('this is r_sep:')
+    print(ts_plasma_r)
     
-    
+    sepr_dat = {'interp_sepr': ts_plasma_r, 'sepr_time': t_efr, 'sepr_dat': efr_dat}
     
     # Retrieve EFIT data for plasma radius
     trace_name_efit = '/EPM/OUTPUT/SEPARATRIXGEOMETRY/ZBOUNDARY'
     t_ezb, ezb_dat, error_code_ezb = get_data_trace(trace_name_efit, shot, t1, t2)
     if error_code_ezb == 0:
-        valid_idx = func_nans_removed(efr_dat)
-        t_efr = t_efr[valid_idx]
-        efr_dat = efr_dat[valid_idx]
+        valid_idx = func_nans_removed(ezb_dat)
+        # t_ezb = t_ezb[valid_idx]
+        # ezb_dat = ezb_dat[valid_idx]
+        
+        
+        # print(valid_idx)
+        # print(t_ezb)
+        # print(ezb_dat)
     else:
         print("Error retrieving EFIT data.")
     
     # Interpolate plasma radius at TS times (from the full range) using EFIT data.
-    ts_plasma_r = np.interp(ts_times, t_efr, efr_dat)
+    # ts_plasma_zb = np.interp(ts_times, t_ezb, ezb_dat)
     
+    ezb_dat = {'ezb_time': t_ezb, 'ezb_dat': ezb_dat}
     
     
     # Retrieve EFIT data for plasma radius
     trace_name_efit = '/EPM/OUTPUT/SEPARATRIXGEOMETRY/ZGEOM'
-    t_efr, efr_dat, error_code_efr = get_data_trace(trace_name_efit, shot, t1, t2)
-    if error_code_efr == 0:
-        valid_idx = func_nans_removed(efr_dat)
-        t_efr = t_efr[valid_idx]
-        efr_dat = efr_dat[valid_idx]
+    t_ezg, ezg_dat, error_code_ezg = get_data_trace(trace_name_efit, shot, t1, t2)
+    if error_code_ezg == 0:
+        valid_idx = func_nans_removed(ezg_dat)
+        # t_ezg = t_ezg[valid_idx]
+        # ezg_dat = ezg_dat[valid_idx]
+        
+        # print('this is from zgeo')
+        # print(valid_idx)
+        # print(t_ezg)
+        # print(ezg_dat)
+        
     else:
         print("Error retrieving EFIT data.")
     
     # Interpolate plasma radius at TS times (from the full range) using EFIT data.
-    ts_plasma_r = np.interp(ts_times, t_efr, efr_dat)
+    # ts_plasma_zg = np.interp(ts_times, t_ezg, ezg_dat)
     
     
+    ezg_dat = {'ezg_time': t_ezg, 'ezg_dat': ezg_dat}
+    
+    
+    
+    return sepr_dat, ezb_dat, ezg_dat
 
-
+    
 
 def main():
     """
@@ -229,6 +249,8 @@ def main():
     ts_end = 0.83     # End TS time [s]
     
     ts_times, radius_data, tz_times, z_data = func_get_z(shot, ts_start, ts_end, t1, t2)
+    sepr_dat, ezb_dat, ezg_dat = from_epm(shot, ts_start, ts_end, t1, t2, ts_times)
+    
     
     # ----------------------------
     # Update Database with Pulse Data
@@ -250,11 +272,12 @@ def main():
     shot_data = {'ts_times': ts_times,'radius_data': radius_data, 
                  'tz_times': tz_times, 'z_data': z_data}
     
-    sep_data = 
+    sep_data = {'sepr': sepr_dat, 'zboundary': ezb_dat, 'zgeometry': ezg_dat}
     
+    sum_data = {'shot': shot_data, 'sep': sep_data}
     
 
-    db[shot] = shot_data
+    db[shot] = sum_data
     with open(pickle_file_path, 'wb') as file:
         pickle.dump(db, file)
     print(f"Data for shot {shot}, pulse {pulse_key} has been saved to the database.")

@@ -240,7 +240,7 @@ def main():
     # ----------------------------
     # User/Shot Configuration
     # ----------------------------
-    shot = 49404         # Shot number to process
+    shot = 51704         # Shot number to process
     t1 = 0.1             # Global start time [s]
     t2 = 1.5             # Global end time [s]
     
